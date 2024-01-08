@@ -75,11 +75,15 @@ m4_define([libva_lt_age],
           [m4_eval(libva_binary_age - libva_interface_age)])
 
 # libdrm minimun version requirement
-m4_define([libdrm_version], [2.4.60])
+m4_define([libdrm_version], [2.4.109])
 
 # Wayland minimum version number
 # 1.11.0 for wl_proxy_create_wrapper
 m4_define([wayland_api_version], [1.11.0])
+
+# wayland-protocols minimum version number
+# 1.24 for linux-dmabuf v4
+m4_define([wayland_protocols_version], [1.24])
 
 AC_PREREQ(2.57)
 AC_INIT([libva],
@@ -304,9 +308,14 @@ USE_WAYLAND="no"
 if test "x$enable_wayland" != "xno"; then
     PKG_CHECK_MODULES([WAYLAND], [wayland-client >= wayland_api_version],
         [USE_WAYLAND="yes"], [:])
+    PKG_CHECK_MODULES([WAYLAND_PROTOCOLS], [wayland-protocols >= wayland_protocols_version],
+        [USE_WAYLAND="yes"], [:])
 
     if test "x$USE_WAYLAND" = "xno" -a "x$enable_wayland" = "xyes"; then
         AC_MSG_ERROR([wayland explicitly enabled, however $WAYLAND_PKG_ERRORS])
+    fi
+    if test "x$USE_WAYLAND_PROTOCOLS" = "xno" -a "x$enable_wayland" = "xyes"; then
+        AC_MSG_ERROR([wayland explicitly enabled, however $WAYLAND_PROTOCOLS_PKG_ERRORS])
     fi
 
     if test "$USE_WAYLAND" = "yes"; then
@@ -321,6 +330,8 @@ if test "x$enable_wayland" != "xno"; then
             fi
             AC_SUBST(WAYLAND_SCANNER, `$PKG_CONFIG --variable=wayland_scanner wayland-scanner`)
         fi
+
+        AC_SUBST(WAYLAND_PROTOCOLS_DIR, `$PKG_CONFIG --variable=pkgdatadir wayland-protocols`)
 
         AC_DEFINE([HAVE_VA_WAYLAND], [1],
                   [Defined to 1 if VA/Wayland API is built])

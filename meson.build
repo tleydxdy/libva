@@ -85,7 +85,7 @@ cc = meson.get_compiler('c')
 dl_dep = cc.find_library('dl', required : false)
 
 WITH_DRM = not get_option('disable_drm') and (host_machine.system() != 'windows')
-libdrm_dep = dependency('libdrm', version : '>= 2.4.60', required : (host_machine.system() != 'windows'))
+libdrm_dep = dependency('libdrm', version : '>= 2.4.109', required : (host_machine.system() != 'windows'))
 
 WITH_X11 = false
 if get_option('with_x11') != 'no'
@@ -121,7 +121,10 @@ if get_option('with_wayland') != 'no'
   if wayland_scanner_dep.found()
     wl_scanner = find_program(wayland_scanner_dep.get_variable(pkgconfig: 'wayland_scanner'))
   endif
-  WITH_WAYLAND = wayland_dep.found() and wayland_scanner_dep.found()
+  wayland_protocols_dep = dependency('wayland-protocols', version : '>= 1.24',
+                                     required : get_option('with_wayland') == 'yes')
+  WITH_WAYLAND = wayland_dep.found() and wayland_scanner_dep.found() and \
+                 wayland_protocols_dep.found()
 endif
 
 WITH_WIN32 = false
